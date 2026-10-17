@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="校园跑Pro">
+<link rel="apple-touch-icon" href="https://img.icons8.com/fluency/180/running.png">
+<title>校园跑Pro</title>
+<style>
+  :root {
+    --bg: #000000;
+    --card: #1C1C1E;
+    --border: #2C2C2E;
+    --accent: #0A84FF;
+    --green: #30D158;
+    --amber: #FF9F0A;
+    --purple: #BF5AF2;
+    --text: #FFFFFF;
+    --sub: #8E8E93;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", sans-serif; }
+  body {
+    margin: 0; padding: calc(env(safe-area-inset-top, 20px) + 12px) 18px calc(env(safe-area-inset-bottom, 24px) + 12px);
+    background-color: var(--bg); color: var(--text);
+    user-select: none; -webkit-user-select: none;
+  }
+  #lock_screen {
+    position: fixed; inset: 0; background: #000000; z-index: 9999;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px;
+  }
+  .lock-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 24px;
+    padding: 28px 22px; width: 100%; max-width: 340px; text-align: center;
+  }
+  .lock-card h2 { margin: 0 0 8px; font-size: 22px; }
+  .lock-card p { margin: 0 0 20px; font-size: 13px; color: var(--sub); }
+  .pin-input {
+    width: 100%; background: #2C2C2E; border: 1px solid #3A3A3C; color: var(--text);
+    padding: 14px; border-radius: 14px; font-size: 22px; text-align: center; letter-spacing: 6px;
+    margin-bottom: 16px; outline: none; -webkit-appearance: none;
+  }
+
+  .header { margin: 8px 0 18px; display: flex; align-items: center; justify-content: space-between; }
+  .title-box h1 { margin: 0; font-size: 25px; font-weight: 800; letter-spacing: -0.5px; background: linear-gradient(90deg, #38BDF8, #30D158); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .title-box p { margin: 4px 0 0; font-size: 12px; color: var(--sub); }
+  .badge { background: #1E293B; color: #30D158; padding: 5px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid #334155; }
+
+  .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+  .metric-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+    padding: 14px 8px; text-align: center;
+  }
+  .metric-title { font-size: 11px; color: var(--sub); margin-bottom: 6px; }
+  .metric-val { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .metric-sub { font-size: 10px; color: #636366; margin-top: 4px; }
+
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 16px; margin-bottom: 16px; }
+  .row { margin-bottom: 16px; }
+  .row:last-child { margin-bottom: 0; }
+  .label-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .label-bar span { font-size: 14px; font-weight: 600; color: #E5E5EA; }
+  .mini-btn { background: #2C2C2E; color: var(--accent); border: none; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; }
+
+  .input-group { display: flex; gap: 8px; align-items: center; }
+  input[type="number"], input[type="text"], input[type="password"] {
+    width: 100%; background: #2C2C2E; border: 1px solid #3A3A3C; color: var(--text);
+    padding: 12px 14px; border-radius: 12px; font-size: 16px; font-weight: 600; outline: none;
+    -webkit-appearance: none;
+  }
+  .step-btn {
+    background: #2C2C2E; color: var(--text); border: 1px solid #3A3A3C;
+    width: 44px; height: 44px; border-radius: 12px; font-size: 20px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .step-btn:active, .mini-btn:active { opacity: 0.6; }
+
+  .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0 4px; border-top: 1px solid var(--border); margin-top: 10px; }
+  .toggle-info h4 { margin: 0; font-size: 14px; font-weight: 600; }
+  .toggle-info p { margin: 3px 0 0; font-size: 11px; color: var(--sub); }
+  input[type="checkbox"] { width: 48px; height: 26px; accent-color: var(--green); flex-shrink: 0; }
+
+  .main-btn {
+    width: 100%; background: linear-gradient(135deg, #0A84FF, #00C7BE);
+    color: white; border: none; padding: 17px; border-radius: 16px;
+    font-size: 17px; font-weight: 700; letter-spacing: 0.5px;
+    box-shadow: 0 8px 20px rgba(10, 132, 255, 0.35);
+  }
+  .main-btn:active { transform: scale(0.98); opacity: 0.9; }
+
+  .log-card {
+    background: rgba(48, 209, 88, 0.12); border: 1px solid var(--green);
+    border-radius: 16px; padding: 14px; margin-top: 16px; display: none;
+  }
+  .log-card h4 { margin: 0 0 6px; color: var(--green); font-size: 14px; }
+  .log-card p { margin: 3px 0; font-size: 12px; color: #D1D1D6; line-height: 1.4; }
+  .dl-link {
+    display: inline-block; margin-top: 8px; background: var(--green); color: #000;
+    padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 700; text-decoration: none;
+  }
+</style>
+</head>
+<body>
+
+<div id="lock_screen">
+  <div class="lock-card">
+    <h2>🔒 私人定制空间</h2>
+    <p>请输入访问密码解锁 CampusRun Pro</p>
+    <input type="password" id="pin_box" class="pin-input" placeholder="••••••••" inputmode="numeric">
+    <button class="main-btn" onclick="checkPin()">解锁进入</button>
+  </div>
+</div>
+
+<div class="header">
+  <div class="title-box">
+    <h1>CampusRun Pro v2.2</h1>
+    <p>无缝跑道闭环无横杠 · 随机跑道起终点</p>
+  </div>
+  <span class="badge">零断层引擎</span>
+</div>
+
+<div class="metrics">
+  <div class="metric-card">
+    <div class="metric-title">⚡ 预估配速</div>
+    <div class="metric-val" id="m_pace" style="color: var(--green);">5'33"</div>
+    <div class="metric-sub">每公里耗时</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-title">🔄 对应操场圈数</div>
+    <div class="metric-val" id="m_laps" style="color: var(--purple);">5.88 圈</div>
+    <div class="metric-sub">按 400米/圈 计算</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-title">🏁 结束时刻</div>
+    <div class="metric-val" id="m_end" style="color: var(--amber);">19:50:27</div>
+    <div class="metric-sub">自动推算</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="row">
+    <div class="label-bar">
+      <span>📅 开始日期与时间 (精确到秒)</span>
+      <button class="mini-btn" onclick="setNow()">设为当前时刻</button>
+    </div>
+    <input type="text" id="inp_start" value="2026-10-16 19:37:23" oninput="refreshUI()">
+  </div>
+
+  <div class="row">
+    <div class="label-bar">
+      <span>🏃 跑步总距离 (公里，两位小数)</span>
+    </div>
+    <div class="input-group">
+      <button class="step-btn" onclick="stepDist(-0.05)">-</button>
+      <input type="number" id="inp_dist" value="2.35" step="0.01" inputmode="decimal" oninput="refreshUI()">
+      <button class="step-btn" onclick="stepDist(0.05)">+</button>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="label-bar">
+      <span>⏱️ 跑步总时长 (分:秒)</span>
+    </div>
+    <div class="input-group">
+      <button class="step-btn" onclick="stepDur(-15)">-</button>
+      <input type="text" id="inp_dur" value="13:04" oninput="refreshUI()">
+      <button class="step-btn" onclick="stepDur(15)">+</button>
+    </div>
+  </div>
+
+  <div class="toggle-row">
+    <div class="toggle-info">
+      <h4>🎲 随机跑道起终点 + 真实圈数映射</h4>
+      <p>自动搜寻厘米级无缝闭环，彻底消除跨圈斜线横杠</p>
+    </div>
+    <input type="checkbox" id="chk_random_loop" checked>
+  </div>
+
+  <div class="toggle-row">
+    <div class="toggle-info">
+      <h4>🛡️ 跑道内 ±0.35m 防重微扰引擎</h4>
+      <p>100% 贴合原操场塑胶跑道，微调经纬度与配速防查重</p>
+    </div>
+    <input type="checkbox" id="chk_jitter" checked>
+  </div>
+</div>
+
+<button class="main-btn" onclick="generateAndExport()">🚀 生成并导出 FIT 文件</button>
+
+<div class="log-card" id="res_box">
+  <h4 id="res_title">🎉 定制 FIT 生成成功！</h4>
+  <p id="res_time"></p>
+  <p id="res_loop"></p>
+  <p id="res_detail"></p>
+  <a id="backup_dl" class="dl-link" href="#" download="">📥 点击此处直接保存 FIT 文件</a>
+</div>
+
+<script>
+const CORRECT_PIN = "20070107";
+const BASE64_TPL = "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VdoJlA9bgQoRBAACmCNGRGR6PRZt/NtV2wnjElyKmBgEAAKcI0ZEXXk9Fgf121XXCe0OW4qQHgQAAqAjRkTmdD0Wt+7bVdsJUBBaihclBAACpCNGRCBuPRY37dtV2wkQEFqKhCsEAAKoI0ZEoWc9Fnzv21XeCc0PWorVMQQAArAjRkQRWz0Wv/XbVd0J6Q9aS48+BAACuCNGRCFOPRbj+9tV3QlFEFuCk0sEAAK8I0ZELUo9FnQC3FXfCf0PW4v4UQQAAsAjRkTjST0WlQncVd0JOA5bi6hXBAACxCNGRPxMPRbVD9xV3AliDlmLaV0EAALII0ZEKVM9FlET3FXcCfoPWYvNYwQAAswjRkRAWj0WQhLcVdsJpxBai3dqBAAC1CNGRDZnPRbtC9xV2gldEFhJjncEAALcI0ZERHQ9FrwF3FXaCWkQVoivhAQAAuAjRkSteD0W6P7bVdsJDBFWjICLBAAC5CNGROB4PRbF9ttV2Ak2EFaM/JEEAALoI0ZEEXQ9FuPu21XdCUoTVoyzmQQAAuwjRkQjbD0WDe3bVd4J1BJWjDuhBAAC8CNGRDxmPRYt7ttV4AnxDVaMz6YEAEMAABMAEwIEhv0EhgkEhggEhgcEhjQEhg0ChA4ChA8BAhABAhEBAhIBAhMChBQChBUChBYChAsChAABAAEBAAPzIEZE6CFGRHOMAQBXvQMACL0DAFe9AwAtEP//Ullv//////////////8JAQPoIUZE4iJGRDSKAQCP0AMAkNADAI/QAwDFD///Vlp1//////////////8JAQPiIkZE6SNGREKCAQBVAwQAWAMEAFUDBACwDv//WFx1//////////////8JAQPpI0ZEAyRGRBQNAACQZQAAkGUAAJBlAAAIBf//VVb///////////////8JAUQAABIAJAIEhv0EhgkEhggEhgcEhg4ChA8ChBABAhEBAkABAmcBAnIBAQUBAAYBAAsChBQChBUChBIBAhMBAiIChCMChCQChDAEhqgEhTkBAToBAZYBAW4HBxYChBcChDIChEcChBkChBoChAABAAEBAATzIEZEAyRGRPylBACA9gsAgPYLADAPyBtWXP//fwEA////////cv//////////////////f39/f25vcm1hbAAVABUA/////wAABAAABEUAACIAB/0EhgUEhgAEhgEChAIBAAMBAAQBAAUDJEZEg5RGRID2CwABAAAaASxh";
+const FIT_EPOCH_MS = Date.UTC(1989, 11, 31, 0, 0, 0);
+
+if (localStorage.getItem("campus_fit_unlocked") === CORRECT_PIN) {
+  document.getElementById("lock_screen").style.display = "none";
+}
+
+function checkPin() {
+  let val = document.getElementById("pin_box").value.trim();
+  if (val === CORRECT_PIN) {
+    localStorage.setItem("campus_fit_unlocked", CORRECT_PIN);
+    document.getElementById("lock_screen").style.display = "none";
+  } else {
+    alert("密码错误！");
+  }
+}
+
+function parseDurSec() {
+  let s = document.getElementById('inp_dur').value.trim().replace('：', ':');
+  if (s.includes(':')) {
+    let p = s.split(':');
+    return p.length === 2 ? parseInt(p[0])*60 + parseInt(p[1]) : parseInt(p[0])*3600 + parseInt(p[1])*60 + parseInt(p[2]);
+  }
+  return parseInt(parseFloat(s));
+}
+
+function parseBeijingTime(str) {
+  let clean = str.trim().replace(' ', 'T');
+  if (!clean.includes('+')) clean += '+08:00';
+  return new Date(clean);
+}
+
+function formatTimeHMS(dateObj) {
+  let bj = new Date(dateObj.getTime() + 8 * 3600 * 1000);
+  return bj.toISOString().substr(11, 8);
+}
+
+function formatFullBeijing(dateObj) {
+  let bj = new Date(dateObj.getTime() + 8 * 3600 * 1000);
+  return bj.toISOString().replace('T', ' ').substr(0, 19);
+}
+
+function setNow() {
+  let now = new Date();
+  document.getElementById('inp_start').value = formatFullBeijing(now);
+  refreshUI();
+}
+
+function stepDist(d) {
+  let el = document.getElementById('inp_dist');
+  let v = Math.max(0.4, parseFloat(el.value || 2.0) + d);
+  el.value = v.toFixed(2);
+  refreshUI();
+}
+
+function stepDur(dSec) {
+  let s = Math.max(60, (parseDurSec() || 600) + dSec);
+  let m = Math.floor(s / 60), sec = s % 60;
+  document.getElementById('inp_dur').value = m + ':' + (sec < 10 ? '0' : '') + sec;
+  refreshUI();
+}
+
+function refreshUI() {
+  try {
+    let dt = parseBeijingTime(document.getElementById('inp_start').value);
+    let dur = parseDurSec();
+    let dist = parseFloat(document.getElementById('inp_dist').value);
+    if (isNaN(dt.getTime()) || isNaN(dur) || isNaN(dist) || dur <= 0 || dist <= 0) throw new Error();
+    let endDt = new Date(dt.getTime() + dur * 1000);
+    let pace = dur / dist;
+    let pm = Math.floor(pace / 60), ps = Math.floor(pace % 60);
+    let laps = (dist * 1000.0) / 400.0;
+    document.getElementById('m_pace').innerText = pm + "'" + (ps < 10 ? '0' : '') + ps + '"';
+    document.getElementById('m_laps').innerText = laps.toFixed(2) + " 圈";
+    document.getElementById('m_end').innerText = formatTimeHMS(endDt);
+  } catch (e) {
+    document.getElementById('m_pace').innerText = "--'--\"";
+  }
+}
+
+function calcFitCrc(buf, len) {
+  const table = [0x0000, 0xCC01, 0xD801, 0x1400, 0xF001, 0x3C00, 0x2800, 0xE401, 0xA001, 0x6C00, 0x7800, 0xB401, 0x5000, 0x9C01, 0x8801, 0x4400];
+  let crc = 0;
+  for (let i = 0; i < len; i++) {
+    let b = buf[i];
+    let tmp = table[crc & 0xF];
+    crc = (crc >> 4) & 0x0FFF;
+    crc = crc ^ tmp ^ table[b & 0xF];
+    tmp = table[crc & 0xF];
+    crc = (crc >> 4) & 0x0FFF;
+    crc = crc ^ tmp ^ table[(b >> 4) & 0xF];
+  }
+  return crc;
+}
+
+async function generateAndExport() {
+  try {
+    let startDt = parseBeijingTime(document.getElementById('inp_start').value);
+    let targetDurSec = parseDurSec();
+    let targetDistKm = parseFloat(document.getElementById('inp_dist').value);
+    let enableRandomLoop = document.getElementById('chk_random_loop').checked;
+    let enableJitter = document.getElementById('chk_jitter').checked;
+    if (isNaN(startDt.getTime()) || targetDurSec < 60 || targetDistKm < 0.1) {
+      alert("请检查开始时间、距离或时长格式是否正确！");
+      return;
+    }
+
+    let binStr = atob(BASE64_TPL);
+    let raw = new Uint8Array(binStr.length);
+    for (let i = 0; i < binStr.length; i++) raw[i] = binStr.charCodeAt(i);
+    let dv = new DataView(raw.buffer);
+
+    let headerSize = raw[0];
+    let dataSize = dv.getUint32(4, true);
+    let endOfData = headerSize + dataSize;
+
+    // 第一遍扫描：提取全部原始时间戳、最大距离，以及所有真实有效的 GPS 采样点
+    let pos = headerSize, localDefs = {}, timestamps = [], maxDistRaw = 0;
+    let validTrackPool = [];
+
+    while (pos < endOfData) {
+      let rh = raw[pos++];
+      if (!(rh & 0x80)) {
+        let isDef = (rh & 0x40) !== 0, hasDev = (rh & 0x20) !== 0, localNum = rh & 0x0F;
+        if (isDef) {
+          let little = raw[pos + 1] === 0;
+          let gNum = dv.getUint16(pos + 2, little);
+          let nFields = raw[pos + 4];
+          pos += 5;
+          let fields = [];
+          for (let i = 0; i < nFields; i++) { fields.push([raw[pos], raw[pos+1], raw[pos+2]]); pos += 3; }
+          let devFields = [];
+          if (hasDev) {
+            let nDev = raw[pos++];
+            for (let i = 0; i < nDev; i++) { devFields.push([raw[pos], raw[pos+1], raw[pos+2]]); pos += 3; }
+          }
+          localDefs[localNum] = { gNum, little, fields, devFields };
+        } else {
+          let def = localDefs[localNum];
+          let recLat = null, recLon = null;
+          for (let [fNum, fSize, fType] of def.fields) {
+            if ((fNum === 253 || fNum === 2) && fSize === 4) {
+              let v = dv.getUint32(pos, def.little);
+              if (v > 800000000 && v < 1500000000) timestamps.push(v);
+            }
+            if ([18, 19, 20].includes(def.gNum) && (fNum === 5 || fNum === 9) && fSize === 4) {
+              let v = dv.getUint32(pos, def.little);
+              if (v !== 0xFFFFFFFF && v > maxDistRaw) maxDistRaw = v;
+            }
+            if (def.gNum === 20 && fSize === 4) {
+              if (fNum === 0) recLat = dv.getInt32(pos, def.little);
+              if (fNum === 1) recLon = dv.getInt32(pos, def.little);
+            }
+            pos += fSize;
+          }
+          // 严格过滤掉没有经纬度的暂停点，只保留合法的跑道坐标
+          if (def.gNum === 20 && recLat !== null && recLon !== null && recLat !== 0x7FFFFFFF && recLat > 300000000) {
+            validTrackPool.push({ lat: recLat, lon: recLon });
+          }
+          for (let [_, dfSize] of def.devFields) pos += dfSize;
+        }
+      }
+    }
+
+    // 【核心修复：动态搜寻首尾完全重合、前进方向完全一致的无缝跑道闭环，彻底消灭横穿操场的斜线】
+    let bestStart = 10, bestEnd = validTrackPool.length - 10, minScore = Infinity;
+    for (let i = 5; i < 35 && i < validTrackPool.length; i++) {
+      let v1Lat = validTrackPool[i + 1].lat - validTrackPool[i].lat;
+      let v1Lon = validTrackPool[i + 1].lon - validTrackPool[i].lon;
+      for (let j = validTrackPool.length - 35; j < validTrackPool.length - 2; j++) {
+        if (j - i < 80) continue;
+        let dLat = validTrackPool[j].lat - validTrackPool[i].lat;
+        let dLon = validTrackPool[j].lon - validTrackPool[i].lon;
+        let distSq = dLat * dLat + dLon * dLon;
+        let v2Lat = validTrackPool[j + 1].lat - validTrackPool[j].lat;
+        let v2Lon = validTrackPool[j + 1].lon - validTrackPool[j].lon;
+        // 必须确保两点运动方向相同（向量点积 > 0），且两点物理距离极近
+        if (v1Lat * v2Lat + v1Lon * v2Lon > 0) {
+          if (distSq < minScore) {
+            minScore = distSq;
+            bestStart = i;
+            bestEnd = j;
+          }
+        }
+      }
+    }
+
+    // 提取首尾无缝闭合的多圈跑道环 (bestStart 到 bestEnd 首尾坐标几乎完全重叠)
+    let rawRing = validTrackPool.slice(bestStart, bestEnd);
+    let cumArc = [0];
+    let lapCountInRing = 0;
+    for (let i = 1; i <= rawRing.length; i++) {
+      let pA = rawRing[i - 1];
+      let pB = rawRing[i % rawRing.length];
+      let dLat = pB.lat - pA.lat, dLon = pB.lon - pA.lon;
+      cumArc.push(cumArc[i - 1] + Math.sqrt(dLat * dLat + dLon * dLon));
+    }
+    let totalRingArc = cumArc[cumArc.length - 1];
+
+    // 通过计算总弧长自动推算该闭环内包含的精确整圈数 (单圈弧长约 42800 semicircles)
+    let singleLapArc = 0;
+    for (let k = 15; k <= 26 && k < rawRing.length; k++) {
+      let dLat = rawRing[k].lat - rawRing[0].lat, dLon = rawRing[k].lon - rawRing[0].lon;
+      let v1Lat = rawRing[1].lat - rawRing[0].lat, v1Lon = rawRing[1].lon - rawRing[0].lon;
+      let vkLat = rawRing[k+1].lat - rawRing[k].lat, vkLon = rawRing[k+1].lon - rawRing[k].lon;
+      if (v1Lat * vkLat + v1Lon * vkLon > 0 && (dLat*dLat + dLon*dLon) < 25000000) {
+        singleLapArc = cumArc[k];
+        break;
+      }
+    }
+    if (singleLapArc <= 0) singleLapArc = totalRingArc / Math.round(rawRing.length / 20.5);
+    let exactLapsInRing = Math.max(1, Math.round(totalRingArc / singleLapArc));
+    singleLapArc = totalRingArc / exactLapsInRing;
+
+    // 随机选择今天在跑道上的出发点弧长位置 (0 ~ totalRingArc)
+    let startArcOffset = enableRandomLoop ? (Math.random() * totalRingArc) : 0.0;
+
+    let origMinTs = Math.min(...timestamps), origMaxTs = Math.max(...timestamps);
+    let origDurSec = Math.max(1, origMaxTs - origMinTs), origDistM = maxDistRaw / 100.0;
+
+    let newStartTs = Math.floor((startDt.getTime() - FIT_EPOCH_MS) / 1000);
+    let timeScale = targetDurSec / origDurSec;
+    let jitterM = enableJitter ? (Math.random() * 8.4 - 4.2) : 0.0;
+    let finalTargetM = targetDistKm * 1000.0 + jitterM;
+    let distScale = finalTargetM / origDistM;
+    let speedScale = distScale / timeScale;
+
+    // 根据用户设定的距离计算需要走过的总圈数与对应弧长 (400米/圈)
+    let targetLaps = finalTargetM / 400.0;
+    let targetTotalArcSpan = targetLaps * singleLapArc;
+
+    let latDrift = 0.0, lonDrift = 0.0;
+
+    // 根据当前走过的弧长，在无缝闭环上二分查找并插值出平滑坐标
+    function getCoordAtArc(arcVal) {
+      let wrappedArc = ((arcVal % totalRingArc) + totalRingArc) % totalRingArc;
+      let lo = 0, hi = rawRing.length - 1;
+      while (lo <= hi) {
+        let mid = (lo + hi) >> 1;
+        if (cumArc[mid] <= wrappedArc) lo = mid + 1;
+        else hi = mid - 1;
+      }
+      let idx = Math.max(0, lo - 1);
+      let nextIdx = (idx + 1) % rawRing.length;
+      let segLen = cumArc[idx + 1] - cumArc[idx];
+      let frac = segLen > 0 ? (wrappedArc - cumArc[idx]) / segLen : 0;
+      return {
+        lat: Math.round(rawRing[idx].lat * (1 - frac) + rawRing[nextIdx].lat * frac),
+        lon: Math.round(rawRing[idx].lon * (1 - frac) + rawRing[nextIdx].lon * frac)
+      };
+    }
+
+    // 第二遍扫描：仅对原本就包含有效坐标的 GPS 记录点写入新跑道坐标，绝不触碰暂停消息和心率步频私有字段
+    pos = headerSize; localDefs = {};
+    let lastRecordDist = 0;
+    let validRecCounter = 0;
+    let totalValidRecs = validTrackPool.length;
+
+    while (pos < endOfData) {
+      let rh = raw[pos++];
+      if (!(rh & 0x80)) {
+        let isDef = (rh & 0x40) !== 0, hasDev = (rh & 0x20) !== 0, localNum = rh & 0x0F;
+        if (isDef) {
+          let little = raw[pos + 1] === 0;
+          let gNum = dv.getUint16(pos + 2, little);
+          let nFields = raw[pos + 4];
+          pos += 5;
+          let fields = [];
+          for (let i = 0; i < nFields; i++) { fields.push([raw[pos], raw[pos+1], raw[pos+2]]); pos += 3; }
+          let devFields = [];
+          if (hasDev) {
+            let nDev = raw[pos++];
+            for (let i = 0; i < nDev; i++) { devFields.push([raw[pos], raw[pos+1], raw[pos+2]]); pos += 3; }
+          }
+          localDefs[localNum] = { gNum, little, fields, devFields };
+        } else {
+          let def = localDefs[localNum];
+
+          // 预检查该条 Record 是否原本就带有有效 GPS 坐标
+          let hasValidGps = false;
+          if (def.gNum === 20) {
+            let tmpPos = pos;
+            let cLat = null, cLon = null;
+            for (let [fNum, fSize] of def.fields) {
+              if (fNum === 0 && fSize === 4) cLat = dv.getInt32(tmpPos, def.little);
+              if (fNum === 1 && fSize === 4) cLon = dv.getInt32(tmpPos, def.little);
+              tmpPos += fSize;
+            }
+            if (cLat !== null && cLon !== null && cLat !== 0x7FFFFFFF && cLat > 300000000) {
+              hasValidGps = true;
+            }
+          }
+
+          let mappedPt = null;
+          if (hasValidGps && enableRandomLoop && rawRing.length > 10) {
+            let progress = validRecCounter / Math.max(1, totalValidRecs - 1);
+            mappedPt = getCoordAtArc(startArcOffset + progress * targetTotalArcSpan);
+          }
+
+          for (let [fNum, fSize, fType] of def.fields) {
+            if (fSize === 4 && (fType === 0x86 || fType === 0x8C)) {
+              let v = dv.getUint32(pos, def.little);
+              if (v > 800000000 && v < 1500000000) {
+                let mapped = newStartTs + Math.round((v - origMinTs) * timeScale);
+                dv.setUint32(pos, mapped, def.little);
+              }
+            }
+            if (def.gNum === 20) {
+              if (hasValidGps && (fNum === 0 || fNum === 1) && fSize === 4) {
+                let coord = dv.getInt32(pos, def.little);
+                if (enableRandomLoop && mappedPt !== null) {
+                  coord = (fNum === 0) ? mappedPt.lat : mappedPt.lon;
+                }
+                if (enableJitter) {
+                  if (fNum === 0) { latDrift = Math.max(-35, Math.min(35, latDrift + (Math.random()*10 - 5))); coord += Math.round(latDrift); }
+                  else { lonDrift = Math.max(-35, Math.min(35, lonDrift + (Math.random()*10 - 5))); coord += Math.round(lonDrift); }
+                }
+                dv.setInt32(pos, coord, def.little);
+              } else if (fNum === 5 && fSize === 4) {
+                let v = dv.getUint32(pos, def.little);
+                if (v !== 0xFFFFFFFF) {
+                  let sc = Math.floor(v * distScale) + (enableJitter && v > 0 ? Math.floor(Math.random()*15 - 7) : 0);
+                  if (sc < lastRecordDist) sc = lastRecordDist;
+                  lastRecordDist = sc;
+                  dv.setUint32(pos, sc, def.little);
+                }
+              } else if (fNum === 6 && fSize === 2) {
+                let v = dv.getUint16(pos, def.little);
+                if (v !== 0xFFFF) dv.setUint16(pos, Math.max(0, Math.floor(v * speedScale)), def.little);
+              } else if (fNum === 73 && fSize === 4) {
+                let v = dv.getUint32(pos, def.little);
+                if (v !== 0xFFFFFFFF) dv.setUint32(pos, Math.max(0, Math.floor(v * speedScale)), def.little);
+              }
+            } else if (def.gNum === 18 || def.gNum === 19) {
+              if ((fNum === 7 || fNum === 8) && fSize === 4) {
+                let v = dv.getUint32(pos, def.little);
+                if (v !== 0xFFFFFFFF) dv.setUint32(pos, Math.round(v * timeScale), def.little);
+              } else if (fNum === 9 && fSize === 4) {
+                let v = dv.getUint32(pos, def.little);
+                if (v !== 0xFFFFFFFF) dv.setUint32(pos, (def.gNum === 18 && lastRecordDist > 0) ? lastRecordDist : Math.floor(v * distScale), def.little);
+              } else if ((fNum === 14 || fNum === 15) && fSize === 2) {
+                let v = dv.getUint16(pos, def.little);
+                if (v !== 0xFFFF) dv.setUint16(pos, Math.floor(v * speedScale), def.little);
+              } else if ((fNum === 124 || fNum === 125) && fSize === 4) {
+                let v = dv.getUint32(pos, def.little);
+                if (v !== 0xFFFFFFFF) dv.setUint32(pos, Math.floor(v * speedScale), def.little);
+              }
+            }
+            pos += fSize;
+          }
+          if (hasValidGps) validRecCounter++;
+          for (let [_, dfSize] of def.devFields) pos += dfSize;
+        }
+      }
+    }
+
+    if (headerSize === 14 && dv.getUint16(12, true) !== 0) {
+      dv.setUint16(12, calcFitCrc(raw, 12), true);
+    }
+    dv.setUint16(endOfData, calcFitCrc(raw, endOfData), true);
+
+    let tag = formatFullBeijing(startDt).replace(/[-:]/g, '').replace(' ', '_');
+    let fileName = `activity_${tag}.fit`;
+    let actualDistM = lastRecordDist / 100.0;
+    let actualLaps = actualDistM / 400.0;
+    let endDt = new Date(startDt.getTime() + targetDurSec * 1000);
+
+    let blob = new Blob([raw], { type: "application/octet-stream" });
+    let blobUrl = URL.createObjectURL(blob);
+
+    let startDeg = Math.round(((startArcOffset % singleLapArc) / singleLapArc) * 360);
+    let endDeg = Math.round((((startArcOffset + targetTotalArcSpan) % singleLapArc) / singleLapArc) * 360);
+    let seamErrorMeters = (Math.sqrt(minScore) / 107.17).toFixed(2);
+
+    let resBox = document.getElementById('res_box');
+    resBox.style.display = 'block';
+    document.getElementById('res_time').innerText = `⏱️ 时段: ${formatFullBeijing(startDt)} 至 ${formatFullBeijing(endDt)}`;
+    document.getElementById('res_loop').innerText = `🔄 轨迹: 真实绕行 ${actualLaps.toFixed(2)} 圈 (闭环接缝误差仅 ${seamErrorMeters}m) | 起点 ${startDeg}° -> 终点 ${endDeg}°`;
+    document.getElementById('res_detail').innerText = `🏃 最终距离: ${(actualDistM/1000).toFixed(2)} km (${actualDistM.toFixed(1)} m) | 文件: ${fileName}`;
+
+    let dlBtn = document.getElementById('backup_dl');
+    dlBtn.href = blobUrl;
+    dlBtn.download = fileName;
+
+    let fileObj = new File([blob], fileName, { type: "application/octet-stream" });
+    if (navigator.canShare && navigator.canShare({ files: [fileObj] })) {
+      try {
+        await navigator.share({ files: [fileObj], title: fileName });
+      } catch (shareErr) {}
+    } else {
+      dlBtn.click();
+    }
+  } catch (err) {
+    alert("生成出错: " + err.message);
+  }
+}
+refreshUI();
+</script>
+</body>
+</html>
